@@ -77,9 +77,17 @@ public class AlphavantageDataService {
         return response.getBody();
     }
 
-    public String getDailyTimeSeries(String symbol) throws AlphavantageDataExecption {
+    public String getDailyTimeSeries(String symbol, String outputSize) throws AlphavantageDataExecption {
         Map<String, String> params = generateParamMap("TIME_SERIES_DAILY");
         params.put("symbol", symbol);
+        if (outputSize.equalsIgnoreCase("full")) {
+            // download full data set if first time calling
+            params.put("outputsize", "full");
+        } else if (outputSize.equalsIgnoreCase("compact")) {
+            params.put("outputsize", "compact");
+        } else {
+            throw new AlphavantageDataExecption(String.format("Invalid input for param outputsize: %s", outputSize));
+        }
         String url = generateUrl(mainURL, params);
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         return response.getBody();
@@ -119,12 +127,13 @@ public class AlphavantageDataService {
     public void requestData(String symbol) throws AlphavantageDataExecption{
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String dailyTimeSeriesResponse = getDailyTimeSeries(symbol);
+            String dailyTimeSeriesResponse = getDailyTimeSeries(symbol, "full");
             // try catch error message
             try {
                 ErrorMessagePojo errorMessagePojo = objectMapper.readValue(dailyTimeSeriesResponse,
                         ErrorMessagePojo.class);
-                throw new AlphavantageDataExecption(String.format("Unknown symbol input: %s, please use /symbolSearch to find correct symbol", symbol));
+                throw new AlphavantageDataExecption(String.format(
+                        "Unknown symbol input: %s, please use /symbolSearch to find correct symbol", symbol));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
@@ -141,7 +150,7 @@ public class AlphavantageDataService {
     public void requestData(String symbol, LocalDate latestDate) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String dailyTimeSeriesResponse = getDailyTimeSeries(symbol);
+            String dailyTimeSeriesResponse = getDailyTimeSeries(symbol, "compact");
             TimeSeriesDailyResponsePojo timeSeriesDailyResponsePojo = objectMapper.readValue(dailyTimeSeriesResponse,
                     TimeSeriesDailyResponsePojo.class);
             Map<String, TimeSeriesDailyPojo> timeSeriesDailyPojoMap = timeSeriesDailyResponsePojo.getTimeSeriesDaily();
