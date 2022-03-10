@@ -27,9 +27,9 @@ db.createUser({
     user: "rootuser",
     pwd: "rootpass",
     roles: [{ role: "userAdminAnyDatabase", db: "admin" }]
-})                                                       # create admin user
+});                                                      # create admin user
 
-db.auth("rootuser", "rootpass")                          # verify user
+db.auth("rootuser", "rootpass");                         # verify user
 ```
 
 Create mongo-express container (optional)
@@ -39,7 +39,7 @@ docker run --name mongo_express --network mongo-network -e ME_CONFIG_MONGODB_SER
   -p 127.0.0.1:8081:8081 -d mongo-express:latest         # create container with mongo-express image
 ```
 
-### Step 2: Build Docker Image and container configuration
+### Step 2: Build Docker Image and container with configuration
 
 Using the following command to build the docker image
 ```bash
@@ -56,9 +56,82 @@ docker run -p 127.0.0.1:9000:9000 --network mongo-network --name javaapp
 --spring.data.mongodb.host=mongo_db                      # example
 ```
 
+Please test the webapp via [localhost:9000//api/test]('localhost:9000//api/test') 
+
 ## 2. Usage
 
-### I) 
+### I. Symbol Search (/api/getSymbol)
+param1: keyword (string)
+
+#### Search Endpoint from Alphavantage
+
+example: http://localhost:9000/api/getSymbol?keyword=apple
+
+Here is the JSON output
+```json
+[
+  {
+    "1. symbol":"APLE",
+    "2. name":"Apple Hospitality REIT Inc",
+    "3. type":"Equity",
+    "4. region":"United States",
+    "5. marketOpen":"09:30",
+    "6. marketClose":"16:00",
+    "7. timezone":"UTC-04",
+    "8. currency":"USD",
+    "9. matchScore":"0.8889"
+  },
+  {
+    "1. symbol":"AAPL",
+    "2. name":"Apple Inc",
+    "3. type":"Equity",
+    "4. region":"United States",
+    "5. marketOpen":"09:30",
+    "6. marketClose":"16:00",
+    "7. timezone":"UTC-04",
+    "8. currency":"USD",
+    "9. matchScore":"0.7143"
+  }, ...
+]
+```
+
+### II. Annualized Return (/api/getReturns)
+param1: symbol (string)
+
+param2: from (date [format yymmdddd])
+
+param3: to (date [format yymmdddd])
+
+#### Calculate annualized return given symbol, start date and end date
+
+example 1 : http://localhost:9000/api/getReturns?symbol=AAPL&from=20210101&to=20220301
+
+Here is the JSON output
+```json
+{
+  "status":"Succeed",
+  "message":null,
+  "financialMetric":
+  {
+    "symbol":"AAPL",
+    "annualizedReturn":0.22278635497482036,
+    "dateFrom":"2021-01-04",
+    "dateTo":"2022-03-01",
+    "closePriceFrom":129.4100,
+    "closePriceTo":163.2000
+  }
+}
+```
+Here is another example with an unknown symbol
+example 2 : http://localhost:9000/api/getReturns?symbol=UNKNOWN&from=20220301&to=20220309
+
+```json
+{
+  "status":"Failed",
+  "message":"Unknown symbol input: UNKNOWN, please use /symbolSearch to find correct symbol",
+  "financialMetric":null
+}
+```
 
 ## 3. Test Case
 
