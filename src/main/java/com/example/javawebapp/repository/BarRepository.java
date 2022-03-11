@@ -13,6 +13,6 @@ public interface BarRepository extends MongoRepository<Bar, String> {
 
     public Bar findTopBySymbolAndDateGreaterThanEqualOrderByDate(String symbol, LocalDate date);
 
-    public Bar findTopBySymbolAndDateLessThanEqualOrderByDateDesc(String symbol, LocalDate date);
+    public Bar findTopBySymbolAndDateLessThanOrderByDateDesc(String symbol, LocalDate date);
 
 }

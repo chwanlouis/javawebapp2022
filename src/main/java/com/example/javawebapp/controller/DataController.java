@@ -2,6 +2,7 @@ package com.example.javawebapp.controller;
 
 import com.example.javawebapp.pojo.ReturnsResponsePojo;
 import com.example.javawebapp.pojo.SymbolPojo;
+import com.example.javawebapp.pojo.SymbolSearchResponsePojo;
 import com.example.javawebapp.service.AlphavantageDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class DataController {
     }
 
     @RequestMapping(value={"/getSymbol"})
-    public List<SymbolPojo> symbolSearch(@RequestParam String keyword) {
+    public SymbolSearchResponsePojo symbolSearch(@RequestParam String keyword) {
         logger.info(String.format("Requesting: /api/getSymbol?keyword=%s", keyword));
         return alphavantageDataService.requestSymbolSearch(keyword);
     }

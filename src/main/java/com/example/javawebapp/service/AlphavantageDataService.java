@@ -6,17 +6,13 @@ import com.example.javawebapp.pojo.*;
 import com.example.javawebapp.repository.BarRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import sun.awt.image.ImageWatched;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -40,8 +36,8 @@ public class AlphavantageDataService {
     private static RestTemplate restTemplate = new RestTemplate();
     private static String mainURL = "https://www.alphavantage.co/query";
 
-    public static LocalDate stringToLocalDate(String dateString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+    public static LocalDate stringToLocalDate(String dateString, String dateFormat) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(dateFormat);
         return LocalDate.parse(dateString, formatter);
     }
 
@@ -112,16 +108,31 @@ public class AlphavantageDataService {
         return barDataList;
     }
 
-    public List<SymbolPojo> requestSymbolSearch(String keyword) {
+    public SymbolSearchResponsePojo requestSymbolSearch(String keyword){
         ObjectMapper objectMapper = new ObjectMapper();
         try {
+            if (keyword.matches("^.*[^a-zA-Z].*$")) {
+                throw new AlphavantageDataExecption("Keyword contains non alphabetic characters");
+            }
             String symbolSearchResponse = getSymbolSearch(keyword);
             SymbolSearchPojo symbolSearchPojo = objectMapper.readValue(symbolSearchResponse, SymbolSearchPojo.class);
-            return symbolSearchPojo.getBestMatches();
-        } catch (AlphavantageDataExecption | JsonProcessingException e) {
+            SymbolSearchResponsePojo symbolSearchResponsePojo = new SymbolSearchResponsePojo();
+            symbolSearchResponsePojo.setStatus("Succeed");
+            symbolSearchResponsePojo.setSymbolSearchPojo(symbolSearchPojo.getBestMatches());
+            return symbolSearchResponsePojo;
+        } catch (JsonProcessingException e) {
             e.printStackTrace();
+            SymbolSearchResponsePojo symbolSearchResponsePojo = new SymbolSearchResponsePojo();
+            symbolSearchResponsePojo.setStatus("Failed");
+            symbolSearchResponsePojo.setMessage("Internal server error");
+            return symbolSearchResponsePojo;
+        } catch (AlphavantageDataExecption e) {
+            SymbolSearchResponsePojo symbolSearchResponsePojo = new SymbolSearchResponsePojo();
+            symbolSearchResponsePojo.setStatus("Failed");
+            symbolSearchResponsePojo.setMessage(e.getMessage());
+            return symbolSearchResponsePojo;
         }
-        return null;
+
     }
 
     public void requestData(String symbol) throws AlphavantageDataExecption{
@@ -180,8 +191,8 @@ public class AlphavantageDataService {
         ReturnsResponsePojo returnsResponsePojo = new ReturnsResponsePojo();
         Double annualizedReturn;
         try {
-            LocalDate dateFrom = stringToLocalDate(from);
-            LocalDate dateTo = stringToLocalDate(to);
+            LocalDate dateFrom = stringToLocalDate(from, "yyyyMMdd");
+            LocalDate dateTo = stringToLocalDate(to, "yyyyMMdd");
             // search symbol if exist in database
             Bar barLatest = barRepository.findTopBySymbolOrderByDateDesc(symbol);
             if (null == barLatest) {
@@ -194,7 +205,8 @@ public class AlphavantageDataService {
             // Get closest date that greater than or equals to give fromDate
             Bar barFrom = barRepository.findTopBySymbolAndDateGreaterThanEqualOrderByDate(symbol, dateFrom);
             // Get closest date that less than or equals to give toDate
-            Bar barTo = barRepository.findTopBySymbolAndDateLessThanEqualOrderByDateDesc(symbol, dateTo);
+            // plusDays calibrate hong kong time zone
+            Bar barTo = barRepository.findTopBySymbolAndDateLessThanOrderByDateDesc(symbol, dateTo.plusDays(1));
             if (null != barFrom && null != barTo) {
                 annualizedReturn = calculateAnnualizedReturn(barFrom, barTo);
                 ReturnsPojo returnsPojo = new ReturnsPojo();
