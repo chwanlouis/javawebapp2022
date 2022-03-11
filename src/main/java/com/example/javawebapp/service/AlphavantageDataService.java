@@ -177,11 +177,19 @@ public class AlphavantageDataService {
         }
     }
 
-    public Double calculateAnnualizedReturn(Bar barFrom, Bar barTo) {
+    public Double calculateAnnualizedReturn(Bar barFrom, Bar barTo) throws AlphavantageDataExecption{
+        if (null == barFrom.getClose() || null == barTo.getClose() ) {
+            throw new AlphavantageDataExecption("Close price is null or NaNs instead of numeric values");
+        }
         Double closeFrom = barFrom.getClose().doubleValue();
         Double closeTo = barTo.getClose().doubleValue();
         LocalDate dateFrom = barFrom.getDate();
         LocalDate dateTo = barTo.getDate();
+        if (closeFrom.isNaN() || closeTo.isNaN()) {
+            throw new AlphavantageDataExecption("Close price is null or NaNs instead of numeric values");
+        } else if (null == dateFrom || null == dateTo) {
+            throw new AlphavantageDataExecption("Date provide is null instead of LocalDate");
+        }
         Double returns = (closeTo - closeFrom) / closeFrom;
         Double period = 365.0 / dateFrom.until(dateTo, ChronoUnit.DAYS);
         return Math.pow(1 + returns, period) - 1;

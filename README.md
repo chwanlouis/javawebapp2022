@@ -135,15 +135,54 @@ example 2 : http://localhost:9000/api/getReturns?symbol=UNKNOWN&from=20220301&to
 
 ## 3. Test Case
 
-calling daily time series data
-i) wrong symbol
-ii) correct symbol, 
+### I) Symbol search
+
+|Test Case Description|Expected Result|
+|----|----|
+|Use keyword 'apple' in symbolSearch function|returning non null results|
+|Use keyword '^hfyg*' in symbolSearch function|returning error|
+
+### II) Annualized Return
+
+#### i) testing annualized return formula
+
+|Test Case Description|Expected Result|
+|----|----|
+|Testing the annualized return formula with different sets of values|Correct results|
+|Testing the annualized return formula with date is null or close price is null|Execption raised|
+
+#### i) testing data retrieved from database given from and to date 
+
+|Test Case Description|Expected Result|
+|----|----|
+|Test annualized return with correct symbol and exact bar date|calculated with bars of exact date|
+|Test annualized return with wrong symbol|Execption raised|
+|Test annualized return with correct symbol and from date is hoilday|calculated with bar of from date calibrated to inclusive nearest business date|
+|Test annualized return with correct symbol and to date is hoilday|calculated with bar of to date calibrated to inclusive nearest business date|
+|Test annualized return with correct symbol and both date are hoilday|calculated with both bars calibrated to inclusive nearest business date|
+|Test annualized return with correct symbol and both date are out of time range|calculated with both bars calibrated to inclusive nearest business date|
+
+All results can be obtained by running the designed test case class in JavawebappApplicationTests.java
 
 ## 4. Software Design
 
+![image](design.png)
+
+### I) Database choice
+
+### II) Finance data api
+
+### III) Design of the webapp
+
 ## 5. Enhancement in the future
 
-scheduler, optimising API (5 API requests per minute and 500 requests per day)
+### I) Use of scheduler
+optimising API (5 API requests per minute and 500 requests per day)
+
+### II) Symbol recommender
 pre loading major index constituents as symbol recommender
+
+### III) Adding handler with data of different time zone
+adding DataTime handler with different time zone
 
 ## 6. Personal comment
