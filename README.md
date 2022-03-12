@@ -168,21 +168,42 @@ All results can be obtained by running the designed test case class in Javawebap
 
 ![image](design.png)
 
-### I) Database choice
+### I) Database and Model layer
 
-### II) Finance data api
+The data model is quite simple for this microservice. Only one collection is created for storing stock data. The reason
+for choosing mongoDB instead of other relational database is for faster read and write. For handling huge amount of
+financial data, mongoDB is also a good choices.
 
-### III) Design of the webapp
+### II) Repository layer
+
+Repository layer stores set of database operation(CRUD) with respect to data model. While service layer run
+the business logic, repository layer can perform the corresponding operation serves what the service needs. 
+
+### III) Service layer
+
+In the service layer, it handles all the request from controller like request data from Alphavantage data api,
+financial computation and managing database operations. Different class are implemented like http request handler and
+Pojos for communication bewteen the app, Alphavantage api and client request. Financial metrics are also defined in this
+layer.
+
+### IV) Controller
+
+Clients or users can directly send out http request (symbol search or financial metric calculation) with controllers 
 
 ## 5. Enhancement in the future
 
 ### I) Use of scheduler
-optimising API (5 API requests per minute and 500 requests per day)
 
-### II) Symbol recommender
-pre loading major index constituents as symbol recommender
+Since the free Alphavantage API has request limits (only 5 API requests per minute and 500 requests per day). New add-ons
+are suggested like job-based scheduler. It can use up all the API requests till near the end of the day. Much data can
+be collected for long term usage. 
 
-### III) Adding handler with data of different time zone
-adding DataTime handler with different time zone
+### II) Adding handler with data of different time zone
+
+Data come from different exchanges should be calibrate with different time zones. The handler should be implemented.
 
 ## 6. Personal comment
+
+It is a meaningful project not only act as a self assessment but also a learning sprint for me. Many important concepts
+like software design pattern, library and tools selection can be revised during the project. It brings me a lot of ideas
+for upgrading my own trading assistant and I enjoy it very much.
