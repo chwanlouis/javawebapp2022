@@ -195,7 +195,7 @@ Clients or users can directly send out http request (symbol search or financial 
 ### I) Use of scheduler
 
 Since the free Alphavantage API has request limits (only 5 API requests per minute and 500 requests per day). New add-ons
-are suggested like job-based scheduler. It can use up all the API requests till near the end of the day. Much data can
+are suggested like job-based scheduler. It can use up all the API requests till near the end of the day. More data can
 be collected for long term usage. 
 
 ### II) Adding handler with data of different time zone
